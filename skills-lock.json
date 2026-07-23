@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "paperhound": {
+      "source": "alexfdez1010/paperhound",
+      "sourceType": "github",
+      "skillPath": "skills/paperhound/SKILL.md",
+      "computedHash": "a75d88f7a1ae129a61ac78f6a4e044f213f4caaa9e5efe045874ce49512facb7"
+    }
+  }
+}

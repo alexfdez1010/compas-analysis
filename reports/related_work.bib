@@ -1,0 +1,208 @@
+@article{dressel2018accuracy,
+  title = {The accuracy, fairness, and limits of predicting recidivism},
+  author = {Julia Dressel and Hany Farid},
+  year = {2018},
+  journal = {Science Advances},
+  doi = {10.1126/sciadv.aao5580},
+  url = {https://doi.org/10.1126/sciadv.aao5580},
+  abstract = {<jats:p>Should we trust computers to make life-altering decisions in the criminal justice system?</jats:p>}
+}
+
+@article{chouldechova2017fair,
+  title = {Fair Prediction with Disparate Impact: A Study of Bias in Recidivism Prediction Instruments},
+  author = {Alexandra Chouldechova},
+  year = {2017},
+  journal = {Big Data},
+  doi = {10.1089/big.2016.0047},
+  url = {https://doi.org/10.1089/big.2016.0047},
+  abstract = {Recidivism prediction instruments (RPIs) provide decision-makers with an assessment of the likelihood that a criminal defendant will reoffend at a future point in time. Although such instruments are gaining increasing popularity across the country, their use is attracting tremendous controversy. Much of the controversy concerns potential discriminatory bias in the risk assessments that are produced. This article discusses several fairness criteria that have recently been applied to assess the fairness of RPIs. We demonstrate that the criteria cannot all be simultaneously satisfied when recidivism prevalence differs across groups. We then show how disparate impact can arise when an RPI fails to satisfy the criterion of error rate balance.}
+}
+
+@article{kleinberg2016inherent,
+  title = {Inherent Trade-Offs in the Fair Determination of Risk Scores},
+  author = {Jon Kleinberg and Sendhil Mullainathan and Manish Raghavan},
+  year = {2016},
+  journal = {arXiv},
+  doi = {10.48550/arxiv.1609.05807},
+  url = {http://arxiv.org/abs/1609.05807v2},
+  abstract = {Recent discussion in the public sphere about algorithmic classification has involved tension between competing notions of what it means for a probabilistic classification to be fair to different groups. We formalize three fairness conditions that lie at the heart of these debates, and we prove that except in highly constrained special cases, there is no method that can satisfy these three conditions simultaneously. Moreover, even satisfying all three conditions approximately requires that the data lie in an approximate version of one of the constrained special cases identified by our theorem. These results suggest some of the ways in which key notions of fairness are incompatible with each other, and hence provide a framework for thinking about the trade-offs between them.}
+}
+
+@inproceedings{corbettdavies2017algorithmic,
+  title = {Algorithmic Decision Making and the Cost of Fairness},
+  author = {Sam Corbett-Davies and Emma Pierson and Avi Feller and Sharad Goel and Aziz Huq},
+  year = {2017},
+  booktitle = {Proceedings of the 23rd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining},
+  doi = {10.1145/3097983.3098095},
+  url = {https://doi.org/10.1145/3097983.3098095},
+  abstract = {Algorithms are now regularly used to decide whether defendants awaiting trial are too dangerous to be released back into the community. In some cases, black defendants are substantially more likely than white defendants to be incorrectly classified as high risk. To mitigate such disparities, several techniques have recently been proposed to achieve algorithmic fairness. Here we reformulate algorithmic fairness as constrained optimization: the objective is to maximize public safety while satisfying formal fairness constraints designed to reduce racial disparities. We show that for several past definitions of fairness, the optimal algorithms that result require detaining defendants above race-specific risk thresholds. We further show that the optimal unconstrained algorithm requires applying a single, uniform threshold to all defendants. The unconstrained algorithm thus maximizes public safety while also satisfying one important understanding of equality: that all individuals are held to the same standard, irrespective of race. Because the optimal constrained and unconstrained algorithms generally differ, there is tension between improving public safety and satisfying prevailing notions of algorithmic fairness. By examining data from Broward County, Florida, we show that this trade-off can be large in practice. We focus on algorithms for pretrial release decisions, but the principles we discuss apply to other domains, and also to human decision makers carrying out structured decision rules.}
+}
+
+@article{barenstein2019propublica,
+  title = {ProPublica's COMPAS Data Revisited},
+  author = {Matias Barenstein},
+  year = {2019},
+  journal = {arXiv},
+  doi = {10.48550/arxiv.1906.04711},
+  url = {http://arxiv.org/abs/1906.04711v3},
+  abstract = {I examine the COMPAS recidivism risk score and criminal history data collected by ProPublica in 2016 that fueled intense debate and research in the nascent field of 'algorithmic fairness'. ProPublica's COMPAS data is used in an increasing number of studies to test various definitions of algorithmic fairness. This paper takes a closer look at the actual datasets put together by ProPublica. In particular, the sub-datasets built to study the likelihood of recidivism within two years of a defendant's original COMPAS survey screening date. I take a new yet simple approach to visualize these data, by analyzing the distribution of defendants across COMPAS screening dates. I find that ProPublica made an important data processing error when it created these datasets, failing to implement a two-year sample cutoff rule for recidivists in such datasets (whereas it implemented a two-year sample cutoff rule for non-recidivists). When I implement a simple two-year COMPAS screen date cutoff rule for recidivists, I estimate that in the two-year general recidivism dataset ProPublica kept over 40\% more recidivists than it should have. This fundamental problem in dataset construction affects some statistics more than others. It obviously has a substantial impact on the recidivism rate; artificially inflating it. For the two-year general recidivism dataset created by ProPublica, the two-year recidivism rate is 45.1\%, whereas, with the simple COMPAS screen date cutoff correction I implement, it is 36.2\%. Thus, the two-year recidivism rate in ProPublica's dataset is inflated by over 24\%. This also affects the positive and negative predictive values. On the other hand, this data processing error has little impact on some of the other key statistical measures, which are less susceptible to changes in the relative share of recidivists, such as the false positive and false negative rates, and the overall accuracy.}
+}
+
+@article{ingram2022accuracy,
+  title = {Accuracy, Fairness, and Interpretability of Machine Learning Criminal Recidivism Models},
+  author = {Eric Ingram and Furkan Gursoy and Ioannis A. Kakadiaris},
+  year = {2022},
+  journal = {arXiv},
+  doi = {10.48550/arxiv.2209.14237},
+  url = {http://arxiv.org/abs/2209.14237v1},
+  abstract = {Criminal recidivism models are tools that have gained widespread adoption by parole boards across the United States to assist with parole decisions. These models take in large amounts of data about an individual and then predict whether an individual would commit a crime if released on parole. Although such models are not the only or primary factor in making the final parole decision, questions have been raised about their accuracy, fairness, and interpretability. In this paper, various machine learning-based criminal recidivism models are created based on a real-world parole decision dataset from the state of Georgia in the United States. The recidivism models are comparatively evaluated for their accuracy, fairness, and interpretability. It is found that there are noted differences and trade-offs between accuracy, fairness, and being inherently interpretable. Therefore, choosing the best model depends on the desired balance between accuracy, fairness, and interpretability, as no model is perfect or consistently the best across different criteria.}
+}
+
+@inproceedings{dearteaga2020case,
+  title = {A Case for Humans-in-the-Loop: Decisions in the Presence of Erroneous Algorithmic Scores},
+  author = {Maria De-Arteaga and Riccardo Fogliato and Alexandra Chouldechova},
+  year = {2020},
+  booktitle = {Proceedings of the 2020 CHI Conference on Human Factors in Computing Systems},
+  doi = {10.1145/3313831.3376638},
+  url = {https://doi.org/10.1145/3313831.3376638},
+  abstract = {The increased use of algorithmic predictions in sensitive domains has been accompanied by both enthusiasm and concern. To understand the opportunities and risks of these technologies, it is key to study how experts alter their decisions when using such tools. In this paper, we study the adoption of an algorithmic tool used to assist child maltreatment hotline screening decisions. We focus on the question: Are humans capable of identifying cases in which the machine is wrong, and of overriding those recommendations? We first show that humans do alter their behavior when the tool is deployed. Then, we show that humans are less likely to adhere to the machine's recommendation when the score displayed is an incorrect estimate of risk, even when overriding the recommendation requires supervisory approval. These results highlight the risks of full automation and the importance of designing decision pipelines that provide humans with autonomy.}
+}
+
+@article{alonbarkat2022human,
+  title = {Human–AI Interactions in Public Sector Decision Making: “Automation Bias” and “Selective Adherence” to Algorithmic Advice},
+  author = {Saar Alon-Barkat and Madalina Busuioc},
+  year = {2022},
+  journal = {Journal of Public Administration Research and Theory},
+  doi = {10.1093/jopart/muac007},
+  url = {https://doi.org/10.1093/jopart/muac007},
+  abstract = {<jats:title>Abstract</jats:title> <jats:p>Artificial intelligence algorithms are increasingly adopted as decisional aides by public bodies, with the promise of overcoming biases of human decision-makers. At the same time, they may introduce new biases in the human–algorithm interaction. Drawing on psychology and public administration literatures, we investigate two key biases: overreliance on algorithmic advice even in the face of “warning signals” from other sources (automation bias), and selective adoption of algorithmic advice when this corresponds to stereotypes (selective adherence). We assess these via three experimental studies conducted in the Netherlands: In study 1 (N = 605), we test automation bias by exploring participants’ adherence to an algorithmic prediction compared to an equivalent human-expert prediction. We do not find evidence for automation bias. In study 2 (N = 904), we replicate these findings, and also test selective adherence. We find a stronger propensity for adherence when the advice is aligned with group stereotypes, with no significant differences between algorithmic and human-expert advice. In study 3 (N = 1,345), we replicate our design with a sample of civil servants. This study was conducted shortly after a major scandal involving public authorities’ reliance on an algorithm with discriminatory outcomes (the “childcare benefits scandal”). The scandal is itself illustrative of our theory and patterns diagnosed empirically in our experiment, yet in our study 3, while supporting our prior findings as to automation bias, we do not find patterns of selective adherence. We suggest this is driven by bureaucrats’ enhanced awareness of discrimination and algorithmic biases in the aftermath of the scandal. We discuss the implications of our findings for public sector decision making in the age of automation. Overall, our study speaks to potential negative effects of automation of the administrative state for already vulnerable and disadvantaged citizens.</jats:p>}
+}
+
+@inproceedings{mishler2021fairness,
+  title = {Fairness in Risk Assessment Instruments},
+  author = {Alan Mishler and Edward H. Kennedy and Alexandra Chouldechova},
+  year = {2021},
+  booktitle = {Proceedings of the 2021 ACM Conference on Fairness, Accountability, and Transparency},
+  doi = {10.1145/3442188.3445902},
+  url = {https://doi.org/10.1145/3442188.3445902},
+  abstract = {In domains such as criminal justice, medicine, and social welfare, decision makers increasingly have access to algorithmic Risk Assessment Instruments (RAIs). RAIs estimate the risk of an adverse outcome such as recidivism or child neglect, potentially informing high-stakes decisions such as whether to release a defendant on bail or initiate a child welfare investigation. It is important to ensure that RAIs are fair, so that the benefits and harms of such decisions are equitably distributed.}
+}
+
+@article{wadsworth2018achieving,
+  title = {Achieving Fairness through Adversarial Learning: an Application to Recidivism Prediction},
+  author = {Christina Wadsworth and Francesca Vera and Chris Piech},
+  year = {2018},
+  journal = {arXiv},
+  doi = {10.48550/arxiv.1807.00199},
+  url = {http://arxiv.org/abs/1807.00199v1},
+  abstract = {Recidivism prediction scores are used across the USA to determine sentencing and supervision for hundreds of thousands of inmates. One such generator of recidivism prediction scores is Northpointe's Correctional Offender Management Profiling for Alternative Sanctions (COMPAS) score, used in states like California and Florida, which past research has shown to be biased against black inmates according to certain measures of fairness. To counteract this racial bias, we present an adversarially-trained neural network that predicts recidivism and is trained to remove racial bias. When comparing the results of our model to COMPAS, we gain predictive accuracy and get closer to achieving two out of three measures of fairness: parity and equality of odds. Our model can be generalized to any prediction and demographic. This piece of research contributes an example of scientific replication and simplification in a high-stakes real-world application like recidivism prediction.}
+}
+
+@article{binns2019apparent,
+  title = {On the Apparent Conflict Between Individual and Group Fairness},
+  author = {Reuben Binns},
+  year = {2019},
+  journal = {arXiv},
+  url = {http://arxiv.org/abs/1912.06883v1},
+  abstract = {A distinction has been drawn in fair machine learning research between `group' and `individual' fairness measures. Many technical research papers assume that both are important, but conflicting, and propose ways to minimise the trade-offs between these measures. This paper argues that this apparent conflict is based on a misconception. It draws on theoretical discussions from within the fair machine learning research, and from political and legal philosophy, to argue that individual and group fairness are not fundamentally in conflict. First, it outlines accounts of egalitarian fairness which encompass plausible motivations for both group and individual fairness, thereby suggesting that there need be no conflict in principle. Second, it considers the concept of individual justice, from legal philosophy and jurisprudence which seems similar but actually contradicts the notion of individual fairness as proposed in the fair machine learning literature. The conclusion is that the apparent conflict between individual and group fairness is more of an artifact of the blunt application of fairness measures, rather than a matter of conflicting principles. In practice, this conflict may be resolved by a nuanced consideration of the sources of `unfairness' in a particular deployment context, and the carefully justified application of measures to mitigate it.}
+}
+
+@inproceedings{selbst2019fairness,
+  title = {Fairness and Abstraction in Sociotechnical Systems},
+  author = {Andrew D. Selbst and Danah Boyd and Sorelle A. Friedler and Suresh Venkatasubramanian and Janet Vertesi},
+  year = {2019},
+  booktitle = {Proceedings of the Conference on Fairness, Accountability, and Transparency},
+  doi = {10.1145/3287560.3287598},
+  url = {https://doi.org/10.1145/3287560.3287598},
+  abstract = {A key goal of the fair-ML community is to develop machine-learning based systems that, once introduced into a social context, can achieve social and legal outcomes such as fairness, justice, and due process. Bedrock concepts in computer science---such as abstraction and modular design---are used to define notions of fairness and discrimination, to produce fairness-aware learning algorithms, and to intervene at different stages of a decision-making pipeline to produce "fair" outcomes. In this paper, however, we contend that these concepts render technical interventions ineffective, inaccurate, and sometimes dangerously misguided when they enter the societal context that surrounds decision-making systems. We outline this mismatch with five "traps" that fair-ML work can fall into even as it attempts to be more context-aware in comparison to traditional data science. We draw on studies of sociotechnical systems in Science and Technology Studies to explain why such traps occur and how to avoid them. Finally, we suggest ways in which technical designers can mitigate the traps through a refocusing of design in terms of process rather than solutions, and by drawing abstraction boundaries to include social actors rather than purely technical ones.}
+}
+
+@inproceedings{slack2020fooling,
+  title = {Fooling LIME and SHAP},
+  author = {Dylan Slack and Sophie Hilgard and Emily Jia and Sameer Singh and Himabindu Lakkaraju},
+  year = {2020},
+  booktitle = {Proceedings of the AAAI/ACM Conference on AI, Ethics, and Society},
+  doi = {10.1145/3375627.3375830},
+  url = {https://doi.org/10.1145/3375627.3375830},
+  abstract = {As machine learning black boxes are increasingly being deployed in domains such as healthcare and criminal justice, there is growing emphasis on building tools and techniques for explaining these black boxes in an interpretable manner. Such explanations are being leveraged by domain experts to diagnose systematic errors and underlying biases of black boxes. In this paper, we demonstrate that post hoc explanations techniques that rely on input perturbations, such as LIME and SHAP, are not reliable. Specifically, we propose a novel scaffolding technique that effectively hides the biases of any given classifier by allowing an adversarial entity to craft an arbitrary desired explanation. Our approach can be used to scaffold any biased classifier in such a way that its predictions on the input data distribution still remain biased, but the post hoc explanations of the scaffolded classifier look innocuous. Using extensive evaluation with multiple real world datasets (including COMPAS), we demonstrate how extremely biased (racist) classifiers crafted by our framework can easily fool popular explanation techniques such as LIME and SHAP into generating innocuous explanations which do not reflect the underlying biases.}
+}
+
+@inproceedings{mothilal2020explaining,
+  title = {Explaining machine learning classifiers through diverse counterfactual explanations},
+  author = {Ramaravind K. Mothilal and Amit Sharma and Chenhao Tan},
+  year = {2020},
+  booktitle = {Proceedings of the 2020 Conference on Fairness, Accountability, and Transparency},
+  doi = {10.1145/3351095.3372850},
+  url = {https://doi.org/10.1145/3351095.3372850},
+  abstract = {Post-hoc explanations of machine learning models are crucial for people to understand and act on algorithmic predictions. An intriguing class of explanations is through counterfactuals, hypothetical examples that show people how to obtain a different prediction. We posit that effective counterfactual explanations should satisfy two properties: feasibility of the counterfactual actions given user context and constraints, and diversity among the counterfactuals presented. To this end, we propose a framework for generating and evaluating a diverse set of counterfactual explanations based on determinantal point processes. To evaluate the actionability of counterfactuals, we provide metrics that enable comparison of counterfactual-based methods to other local explanation methods. We further address necessary tradeoffs and point to causal implications in optimizing for counterfactuals. Our experiments on four real-world datasets show that our framework can generate a set of counterfactuals that are diverse and well approximate local decision boundaries, outperforming prior approaches to generating diverse counterfactuals. We provide an implementation of the framework at https://github.com/microsoft/DiCE.}
+}
+
+@article{hort2024bias,
+  title = {Bias Mitigation for Machine Learning Classifiers: A Comprehensive Survey},
+  author = {Max Hort and Zhenpeng Chen and Jie M. Zhang and Mark Harman and Federica Sarro},
+  year = {2024},
+  journal = {ACM Journal on Responsible Computing},
+  doi = {10.1145/3631326},
+  url = {https://doi.org/10.1145/3631326},
+  abstract = {<jats:p>This article provides a comprehensive survey of bias mitigation methods for achieving fairness in Machine Learning (ML) models. We collect a total of 341 publications concerning bias mitigation for ML classifiers. These methods can be distinguished based on their intervention procedure (i.e., pre-processing, in-processing, post-processing) and the technique they apply. We investigate how existing bias mitigation methods are evaluated in the literature. In particular, we consider datasets, metrics, and benchmarking. Based on the gathered insights (e.g., What is the most popular fairness metric? How many datasets are used for evaluating bias mitigation methods?), we hope to support practitioners in making informed choices when developing and evaluating new bias mitigation methods.</jats:p>}
+}
+
+@article{miron2020evaluating,
+  title = {Evaluating causes of algorithmic bias in juvenile criminal recidivism},
+  author = {Marius Miron and Songül Tolan and Emilia Gómez and Carlos Castillo},
+  year = {2020},
+  journal = {Artificial Intelligence and Law},
+  doi = {10.1007/s10506-020-09268-y},
+  url = {https://doi.org/10.1007/s10506-020-09268-y},
+  abstract = {<jats:title>Abstract</jats:title><jats:p>In this paper we investigate risk prediction of criminal re-offense among juvenile defendants using general-purpose machine learning (ML) algorithms. We show that in our dataset, containing hundreds of cases, ML models achieve better predictive power than a structured professional risk assessment tool, the Structured Assessment of Violence Risk in Youth (SAVRY), at the expense of not satisfying relevant group fairness metrics that SAVRY does satisfy. We explore in more detail two possible causes of this algorithmic bias that are related to biases in the data with respect to two protected groups, foreigners and women. In particular, we look at (1) the differences in the prevalence of re-offense between protected groups and (2) the influence of protected group or correlated features in the prediction. Our experiments show that both can lead to disparity between groups on the considered group fairness metrics. We observe that methods to mitigate the influence of either cause do not guarantee fair outcomes. An analysis of feature importance using LIME, a machine learning interpretability method, shows that some mitigation methods can shift the set of features that ML techniques rely on away from demographics and criminal history which are highly correlated with sensitive features.</jats:p>}
+}
+
+@article{rudin2019stop,
+  title = {Stop explaining black box machine learning models for high stakes decisions and use interpretable models instead},
+  author = {Cynthia Rudin},
+  year = {2019},
+  journal = {Nature Machine Intelligence},
+  doi = {10.1038/s42256-019-0048-x},
+  url = {https://doi.org/10.1038/s42256-019-0048-x}
+}
+
+@article{obermeyer2019dissecting,
+  title = {Dissecting racial bias in an algorithm used to manage the health of populations},
+  author = {Ziad Obermeyer and Brian Powers and Christine Vogeli and Sendhil Mullainathan},
+  year = {2019},
+  journal = {Science},
+  doi = {10.1126/science.aax2342},
+  url = {https://doi.org/10.1126/science.aax2342},
+  abstract = {<jats:title>Racial bias in health algorithms</jats:title> <jats:p> The U.S. health care system uses commercial algorithms to guide health decisions. Obermeyer <jats:italic>et al.</jats:italic> find evidence of racial bias in one widely used algorithm, such that Black patients assigned the same level of risk by the algorithm are sicker than White patients (see the Perspective by Benjamin). The authors estimated that this racial bias reduces the number of Black patients identified for extra care by more than half. Bias occurs because the algorithm uses health costs as a proxy for health needs. Less money is spent on Black patients who have the same level of need, and the algorithm thus falsely concludes that Black patients are healthier than equally sick White patients. Reformulating the algorithm so that it no longer uses costs as a proxy for needs eliminates the racial bias in predicting who needs extra care. </jats:p> <jats:p> <jats:italic>Science</jats:italic> , this issue p. <jats:related-article xmlns:xlink="http://www.w3.org/1999/xlink" ext-link-type="doi" issue="6464" page="447" related-article-type="in-this-issue" vol="366" xlink:href="10.1126/science.aax2342">447</jats:related-article> ; see also p. <jats:related-article xmlns:xlink="http://www.w3.org/1999/xlink" ext-link-type="doi" issue="6464" page="421" related-article-type="in-this-issue" vol="366" xlink:href="10.1126/science.aaz3873">421</jats:related-article> </jats:p>}
+}
+
+@article{lin2020limits,
+  title = {The limits of human predictions of recidivism},
+  author = {Zhiyuan “Jerry” Lin and Jongbin Jung and Sharad Goel and Jennifer Skeem},
+  year = {2020},
+  journal = {Science Advances},
+  doi = {10.1126/sciadv.aaz0652},
+  url = {https://doi.org/10.1126/sciadv.aaz0652},
+  abstract = {<jats:p>Statistical algorithms can outperform human predictions of recidivism.</jats:p>}
+}
+
+@article{ensign2017runaway,
+  title = {Runaway Feedback Loops in Predictive Policing},
+  author = {Danielle Ensign and Sorelle A. Friedler and Scott Neville and Carlos Scheidegger and Suresh Venkatasubramanian},
+  year = {2017},
+  journal = {arXiv},
+  doi = {10.48550/arxiv.1706.09847},
+  url = {http://arxiv.org/abs/1706.09847v3},
+  abstract = {Predictive policing systems are increasingly used to determine how to allocate police across a city in order to best prevent crime. Discovered crime data (e.g., arrest counts) are used to help update the model, and the process is repeated. Such systems have been empirically shown to be susceptible to runaway feedback loops, where police are repeatedly sent back to the same neighborhoods regardless of the true crime rate. In response, we develop a mathematical model of predictive policing that proves why this feedback loop occurs, show empirically that this model exhibits such problems, and demonstrate how to change the inputs to a predictive policing system (in a black-box manner) so the runaway feedback loop does not occur, allowing the true crime rate to be learned. Our results are quantitative: we can establish a link (in our model) between the degree to which runaway feedback causes problems and the disparity in crime rates between areas. Moreover, we can also demonstrate the way in which \textbackslash{}emph\{reported\} incidents of crime (those reported by residents) and \textbackslash{}emph\{discovered\} incidents of crime (i.e. those directly observed by police officers dispatched as a result of the predictive policing algorithm) interact: in brief, while reported incidents can attenuate the degree of runaway feedback, they cannot entirely remove it without the interventions we suggest.}
+}
+
+@article{tan2018investigating,
+  title = {Investigating Human + Machine Complementarity for Recidivism Predictions},
+  author = {Sarah Tan and Julius Adebayo and Kori Inkpen and Ece Kamar},
+  year = {2018},
+  journal = {arXiv},
+  doi = {10.48550/arxiv.1808.09123},
+  url = {http://arxiv.org/abs/1808.09123v2},
+  abstract = {When might human input help (or not) when assessing risk in fairness domains? Dressel and Farid (2018) asked Mechanical Turk workers to evaluate a subset of defendants in the ProPublica COMPAS data for risk of recidivism, and concluded that COMPAS predictions were no more accurate or fair than predictions made by humans. We delve deeper into this claim to explore differences in human and algorithmic decision making. We construct a Human Risk Score based on the predictions made by multiple Turk workers, characterize the features that determine agreement and disagreement between COMPAS and Human Scores, and construct hybrid Human+Machine models to predict recidivism. Our key finding is that on this data set, Human and COMPAS decision making differed, but not in ways that could be leveraged to significantly improve ground-truth prediction. We present the results of our analyses and suggestions for data collection best practices to leverage complementary strengths of human and machines in the fairness domain.}
+}
+
