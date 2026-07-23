@@ -49,11 +49,13 @@ uv run python scripts/05_debiased_model.py
 uv run python scripts/06_xai_comparison.py
 ```
 
-Run the interactive demo:
+Run the interactive demo locally:
 
 ```bash
 uv run streamlit run app/demo.py
 ```
+
+Or try the live version: **[compas-analysis.streamlit.app](https://compas-analysis.streamlit.app)**
 
 ## Tools
 

@@ -273,6 +273,8 @@ person is to the boundary.
 
 ## 6. Interactive demo (Streamlit)
 
+Live app: **[compas-analysis.streamlit.app](https://compas-analysis.streamlit.app)**
+
 ```bash
 uv run streamlit run app/demo.py
 ```
