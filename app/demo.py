@@ -12,6 +12,7 @@ from pathlib import Path
 
 import joblib
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mtick
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -73,31 +74,78 @@ def biased_features(age, priors, juv_fel, juv_misd, juv_other, felony, male, rac
     return pd.DataFrame([row])
 
 
-def contributions(model, X_row: pd.DataFrame) -> pd.Series:
-    """Per-feature contribution to the log-odds of re-arrest for one defendant.
+def probability_steps(model, X_row: pd.DataFrame):
+    """Waterfall decomposition of one suggestion, in probability space.
 
     The deployed models are linear (StandardScaler + LogisticRegression), so the
-    score decomposes exactly: log-odds = intercept + sum_j (coef_j * z_j), where
-    z_j is the standardized value of feature j. Each term is that feature's
-    signed push on this specific suggestion - the reason the model is auditable
-    at the individual level, not just globally (report 07).
+    score decomposes exactly in *log-odds*: log-odds = intercept + sum_j
+    (coef_j * z_j), where z_j is the standardized value of feature j. Log-odds
+    are additive but unreadable, so we walk them into probability: start from the
+    baseline (every feature at its average, z = 0), then apply features one at a
+    time, largest effect first, converting to probability after each step. The
+    running probability lands *exactly* on model.predict_proba.
+
+    Returns (baseline_prob, [(feature, delta_fraction, cumulative_prob), ...]).
+    Note: because the sigmoid is non-linear, the per-feature percentage-point
+    split depends on the order features are applied (largest-first here); the
+    baseline and the final total do not. Log-odds remain the order-free view.
     """
     scaler = model.named_steps["standardscaler"]
     clf = model.named_steps["logisticregression"]
     z = (X_row.values[0] - scaler.mean_) / scaler.scale_
-    return pd.Series(z * clf.coef_[0], index=X_row.columns)
+    contrib = z * clf.coef_[0]  # per-feature log-odds push (order-free, exact)
+    intercept = float(clf.intercept_[0])
+
+    def sigmoid(x):
+        return 1.0 / (1.0 + np.exp(-x))
+
+    order = np.argsort(-np.abs(contrib))  # largest absolute effect first
+    baseline = sigmoid(intercept)
+    running_logodds = intercept
+    prev_p = baseline
+    steps = []
+    for j in order:
+        running_logodds += contrib[j]
+        p = sigmoid(running_logodds)
+        steps.append((X_row.columns[j], p - prev_p, p))
+        prev_p = p
+    return baseline, steps
 
 
-def contribution_chart(contrib: pd.Series):
-    order = contrib.reindex(contrib.abs().sort_values().index)
-    labels = [FEATURE_LABELS.get(f, f) for f in order.index]
-    colors = ["#c0504d" if v > 0 else "#4f81bd" for v in order.values]
-    fig, ax = plt.subplots(figsize=(5.2, 0.42 * len(order) + 0.6))
-    ax.barh(range(len(order)), order.values, color=colors)
-    ax.set_yticks(range(len(order)))
+def waterfall_chart(baseline: float, steps):
+    labels = (["Baseline (average profile)"]
+              + [FEATURE_LABELS.get(f, f) for f, _, _ in steps]
+              + ["Suggested probability"])
+    n = len(labels)
+    y = np.arange(n)[::-1]  # first row at the top
+    fig, ax = plt.subplots(figsize=(5.8, 0.42 * n + 0.6))
+
+    ax.barh(y[0], baseline, color="#8c8c8c")
+    ax.text(baseline + 0.01, y[0], f"{baseline:.0%}", va="center", fontsize=8)
+
+    prev = baseline
+    for i, (_, delta, cum) in enumerate(steps, start=1):
+        color = "#c0504d" if delta > 0 else "#4f81bd"
+        ax.barh(y[i], delta, left=prev, color=color, height=0.6)
+        # dashed connector from the previous cumulative level
+        ax.plot([prev, prev], [y[i] + 0.3, y[i - 1] - 0.3],
+                color="#bbb", linewidth=0.6, linestyle=(0, (2, 2)))
+        sign = "+" if delta >= 0 else "−"
+        ax.text(max(prev, cum) + 0.01, y[i],
+                f"{sign}{abs(delta) * 100:.1f} pp", va="center", fontsize=7.5)
+        prev = cum
+
+    final = steps[-1][2] if steps else baseline
+    ax.barh(y[-1], final, color="#333333")
+    ax.text(final + 0.01, y[-1], f"{final:.0%}", va="center",
+            fontsize=8, fontweight="bold")
+
+    ax.set_yticks(y)
     ax.set_yticklabels(labels, fontsize=8)
-    ax.axvline(0, color="#333", linewidth=0.8)
-    ax.set_xlabel("contribution to log-odds of re-arrest", fontsize=8)
+    ax.set_xlim(0, 1.18)
+    ax.set_xticks([0, 0.25, 0.5, 0.75, 1.0])
+    ax.xaxis.set_major_formatter(mtick.PercentFormatter(xmax=1.0, decimals=0))
+    ax.set_xlabel("suggested P(re-arrest within 2 years)", fontsize=8)
     ax.tick_params(axis="x", labelsize=7)
     for spine in ("top", "right"):
         ax.spines[spine].set_visible(False)
@@ -164,30 +212,33 @@ def main() -> None:
         "Both models are **logistic regressions** — a linear model chosen "
         "precisely because its reasoning is fully auditable (see the "
         "model-selection benchmark, report 03). For this exact defendant the "
-        "score decomposes into one signed contribution per feature: "
-        "**red bars push the suggestion toward higher risk, blue bars toward "
-        "lower risk**, and their sum (plus a constant) is the log-odds behind "
-        "the probability above."
+        "chart below reads as a **waterfall in plain probability**: start from "
+        "the baseline (an average profile), then apply each feature one at a "
+        "time — **red bars push the suggestion toward higher risk, blue bars "
+        "toward lower risk (in percentage points)** — and you land *exactly* on "
+        "the suggested probability shown above."
     )
-    contrib_b = contributions(model_b, Xb)
-    contrib_d = contributions(model_d, Xd)
+    baseline_b, steps_b = probability_steps(model_b, Xb)
+    baseline_d, steps_d = probability_steps(model_d, Xd)
     ecol1, ecol2 = st.columns(2)
     with ecol1:
         st.caption("Model trained on original data (uses race)")
-        st.pyplot(contribution_chart(contrib_b))
+        st.pyplot(waterfall_chart(baseline_b, steps_b))
     with ecol2:
         st.caption("Model trained on de-biased data (race-blind)")
-        st.pyplot(contribution_chart(contrib_d))
-    top_b = contrib_b.reindex(contrib_b.abs().sort_values(ascending=False).index)
-    lead = top_b.index[0]
-    race_push = contrib_b[[c for c in contrib_b.index if c.startswith("race_")]].abs().sum()
+        st.pyplot(waterfall_chart(baseline_d, steps_d))
+    lead_f, lead_delta, _ = steps_b[0]
+    race_pp = sum(abs(d) for f, d, _ in steps_b if f.startswith("race_"))
     st.markdown(
         f"For this profile the biggest driver of the original-data model is "
-        f"**{FEATURE_LABELS.get(lead, lead)}** "
-        f"({'+' if top_b.iloc[0] > 0 else ''}{top_b.iloc[0]:.2f} log-odds). "
-        f"The race fields contribute **{race_push:.2f}** of log-odds movement "
-        "in that model; in the de-biased model they contribute exactly 0, "
-        "because race is not an input."
+        f"**{FEATURE_LABELS.get(lead_f, lead_f)}** "
+        f"({'+' if lead_delta >= 0 else '−'}{abs(lead_delta) * 100:.1f} "
+        "percentage points). The race fields together move the suggestion by "
+        f"**{race_pp * 100:.1f} pp** in that model; in the de-biased model they "
+        "move it exactly 0, because race is not an input. "
+        "*(Percentage-point splits depend on the order features are applied, "
+        "since probability is non-linear; the baseline and the final total do "
+        "not.)*"
     )
 
     st.divider()
