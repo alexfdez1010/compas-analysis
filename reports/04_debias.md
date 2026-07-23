@@ -61,10 +61,3 @@ the training data.
 - **The impossibility theorem still applies.** With different base rates,
   calibration and equal error rates cannot hold simultaneously
   (Chouldechova 2017); script 05 measures where the de-biased model lands.
-
-## Note on the dropped AutoML step
-
-The original proposal included an AutoML tool to pinpoint what needs
-de-biasing. That step was descoped; the automated detection above (correlation
-scan + proxy predictability test + the Fairlearn audit of report 03) fulfils
-the same role with transparent, reproducible methods.
