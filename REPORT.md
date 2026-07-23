@@ -18,20 +18,24 @@ and Fairness** (automated bias detection and mitigation).
 
 ## Key results
 
-| | Biased SVM (original data) | De-biased SVM (race-blind) |
+| | Biased LR (original data) | De-biased LR (race-blind) |
 |---|---:|---:|
-| Accuracy | 66.0% | 65.3% |
-| ROC-AUC | 0.720 | 0.712 |
-| Demographic parity difference | 0.317 | **0.233** |
-| Equalized odds difference | 0.361 | **0.249** |
-| Race share of SHAP attribution | 15.9% | **0** (not an input) |
-| Suggestions changed by a race flip | 12.6% (AA→Cauc.) | **exactly 0, by construction** |
+| Accuracy | 67.2% | 67.1% |
+| ROC-AUC | 0.724 | 0.724 |
+| Demographic parity difference | 0.300 | **0.238** |
+| Equalized odds difference | 0.315 | **0.250** |
+| Race share of SHAP attribution | 6.1% | **0** (not an input) |
+| Suggestions changed by a race flip | 6.7% (AA→Cauc.) | **exactly 0, by construction** |
 
-De-biasing costs 0.7 percentage points of accuracy — essentially noise — while
-cutting the group-fairness gaps by roughly a third and eliminating individual
-race sensitivity entirely. The residual gap is driven by base-rate differences
-in the re-arrest label, which no feature-level intervention can remove; this is
-the strongest argument for keeping a human in the loop.
+A model-selection benchmark (report 03) shows every classifier family lands
+within ~0.02 ROC-AUC on this data, so the project uses a **logistic
+regression** — tied-best on accuracy and fully interpretable, with no accuracy
+argument for an opaque model. De-biasing costs 0.1 percentage points of
+accuracy — essentially noise — while cutting the group-fairness gaps by about a
+fifth and eliminating individual race sensitivity entirely. The residual gap is
+driven by base-rate differences in the re-arrest label, which no feature-level
+intervention can remove; this is the strongest argument for keeping a human in
+the loop.
 
 ---
 
@@ -103,15 +107,29 @@ Split: 70/30 train/test, stratified jointly on outcome and race (4,320 train /
 set. Features: age, priors count, juvenile counts, charge degree, sex, **and
 race** (one-hot) — race is kept in the baseline deliberately, to expose how
 much predictive weight the data assigns to it (see "Decisions made"). Full
-detail in [reports/03_baseline.md](reports/03_baseline.md).
+detail in [reports/04_baseline.md](reports/04_baseline.md).
+
+### Model selection
+
+Before fixing an architecture, every practical classifier family (logistic
+regression, SVM, decision tree, random forest, gradient boosting, MLP, k-NN,
+naive Bayes) was benchmarked under the race-blind deployment regime with 5-fold
+cross-validation. Every genuine model lands in a CV ROC-AUC band of just
+0.704–0.735 and ~66–67% accuracy — a quantitative confirmation of Dressel &
+Farid (2018) that model complexity buys essentially nothing here, and that no
+family is meaningfully "fairer" than another (unfairness lives in the labels,
+not the estimator). Because performance is tied, the project selects **logistic
+regression**: tied-best on accuracy, fully interpretable (one signed weight per
+feature), well-calibrated, and a linear match to the linear de-biasing step.
+Full benchmark in [reports/03_model_selection.md](reports/03_model_selection.md).
 
 ### Interpretable decision tree
 
 Accuracy 66.3%, ROC-AUC 0.709.
 
-![Decision tree](figures/03_decision_tree.png)
+![Decision tree](figures/04_decision_tree.png)
 
-![Feature importance](figures/03_tree_importance.png)
+![Feature importance](figures/04_tree_importance.png)
 
 Two findings matter for the ethics assessment. First, the transparent
 five-feature tree matches COMPAS's own ~65% accuracy (echoing Dressel & Farid
@@ -120,29 +138,31 @@ appear in the split rules, yet the fairness audit still shows large error-rate
 gaps: the bias travels through `priors_count` and `age`, which are themselves
 products of unequal policing intensity (RQ2).
 
-### Reference SVM ("biased model")
+### Reference logistic regression ("biased model")
 
-RBF-kernel SVM, accuracy 66.0%, ROC-AUC 0.720.
+Logistic regression, accuracy 67.2%, ROC-AUC 0.724. Because the model is linear
+its logic is fully readable: the standardized coefficients are dominated by
+`priors_count` (+0.76) and `age` (−0.50).
 
-![Fairness metrics](figures/03_fairness_svm.png)
+![Fairness metrics](figures/04_fairness_lr.png)
 
 | Metric | African-American | Caucasian | Hispanic |
 |--------|----------------:|----------:|---------:|
-| Accuracy | 65.9% | 66.2% | 66.0% |
-| Selection rate | 46.3% | 14.6% | 21.6% |
-| False positive rate | 29.5% | 7.6% | 14.6% |
-| False negative rate | 38.4% | 74.5% | 66.7% |
+| Accuracy | 66.8% | 68.0% | 67.3% |
+| Selection rate | 49.8% | 19.8% | 26.8% |
+| False positive rate | 32.2% | 10.4% | 17.7% |
+| False negative rate | 34.1% | 65.6% | 57.9% |
 
 Aggregate disparity (African-American vs Caucasian): **demographic parity
-difference 0.317**, **equalized odds difference 0.361**. Training a fresh model
+difference 0.300**, **equalized odds difference 0.315**. Training a fresh model
 on the raw data reproduces the injustice pattern of the data-generating system;
 this is the reference point the de-biasing must improve on. Under ALTAI
-Requirement #2, ~66% accuracy means roughly one suggestion in three is wrong —
+Requirement #2, ~67% accuracy means roughly one suggestion in three is wrong —
 tolerable, if at all, only in a decision-support setting.
 
 ## 3. Automated bias detection and de-biasing
 
-Full detail in [reports/04_debias.md](reports/04_debias.md).
+Full detail in [reports/05_debias.md](reports/05_debias.md).
 
 **Detection 1 — correlation scan.** Pearson correlation of each feature with
 the African-American indicator on the training split: `priors_count` +0.203,
@@ -165,7 +185,7 @@ African-American indicator becomes zero while retaining as much information as
 possible. After the transformation, the proxy test drops to **AUC 0.508**
 (~random) and every feature–race correlation is ~0.
 
-![Correlation removal](figures/04_correlation_removal.png)
+![Correlation removal](figures/05_correlation_removal.png)
 
 **What this does not fix:** label bias (the re-arrest target embeds unequal
 enforcement; base rates of 52% vs 39% cannot be repaired by any feature
@@ -180,12 +200,12 @@ the automated detection above (correlation scan + proxy predictability test +
 the Fairlearn audit of section 2), which fulfils the same role with
 transparent, reproducible methods.
 
-## 4. De-biased SVM and the deployment decision
+## 4. De-biased logistic regression and the deployment decision
 
-Identical architecture to the reference model (StandardScaler + RBF SVM,
-C=1.0), trained on the de-biased features. Race enters the pipeline only as an
-audit attribute. Full detail in
-[reports/05_debiased_model.md](reports/05_debiased_model.md).
+Identical architecture to the reference model (StandardScaler + logistic
+regression), trained on the de-biased features. Race enters the pipeline only as
+an audit attribute. Full detail in
+[reports/06_debiased_model.md](reports/06_debiased_model.md).
 
 ### Race-blind vs race-aware inference
 
@@ -194,27 +214,29 @@ forces a choice at prediction time:
 
 | Deployment | Accuracy | Demographic parity diff. | Equalized odds diff. | Individual race-invariance |
 |------------|---------:|-------------------------:|---------------------:|:--:|
-| **Race-blind** (raw features at inference — chosen) | 65.3% | 0.233 | 0.249 | yes — exact |
-| Race-aware (transform with the person's race) | 65.3% | 0.168 | 0.168 | no |
+| **Race-blind** (raw features at inference — chosen) | 67.1% | 0.238 | 0.250 | yes — exact |
+| Race-aware (transform with the person's race) | 65.0% | 0.028 | 0.075 | no |
 
-The race-aware variant achieves better group fairness, but a person's stated
-race then moves their individual score: it breaks counterfactual fairness,
-requires collecting the protected attribute at decision time, and amounts to
-explicit differential treatment. We deploy **race-blind**: the de-biasing is a
-training-time intervention, and at prediction time the model never sees race,
-so flipping race provably cannot change any suggestion.
+The race-aware variant achieves markedly better group fairness — pairing the
+linear CorrelationRemover with a linear model drives the demographic-parity
+difference down to near-parity (0.028) — but a person's stated race then moves
+their individual score: it breaks counterfactual fairness, requires collecting
+the protected attribute at decision time, and amounts to explicit differential
+treatment. We deploy **race-blind**: the de-biasing is a training-time
+intervention, and at prediction time the model never sees race, so flipping race
+provably cannot change any suggestion.
 
 ### Results
 
-![Comparison](figures/05_fairness_comparison.png)
+![Comparison](figures/06_fairness_comparison.png)
 
-| Metric | SVM original | SVM de-biased |
+| Metric | LR original | LR de-biased |
 |--------|-------------:|--------------:|
-| Accuracy | 66.0% | 65.3% |
-| FPR gap (AA − Cauc.) | 22.0% | **16.0%** |
-| FNR gap (Cauc. − AA) | 36.1% | **24.9%** |
-| Demographic parity difference | 0.317 | **0.233** |
-| Equalized odds difference | 0.361 | **0.249** |
+| Accuracy | 67.2% | 67.1% |
+| FPR gap (AA − Cauc.) | 21.7% | **15.8%** |
+| FNR gap (Cauc. − AA) | 31.5% | **25.0%** |
+| Demographic parity difference | 0.300 | **0.238** |
+| Equalized odds difference | 0.315 | **0.250** |
 
 The error-rate gaps shrink substantially but do **not** vanish. The remaining
 gap lives in the outcome variable's base rates, which no feature-side
@@ -227,16 +249,16 @@ residual gap is itself an argument for the suggestion framing.
 
 SHAP values computed with the permutation explainer on 150 sampled test
 defendants (30 background samples, seed 42). Full detail in
-[reports/06_xai.md](reports/06_xai.md).
+[reports/07_xai.md](reports/07_xai.md).
 
-![SHAP biased](figures/06_shap_biased.png)
+![SHAP biased](figures/07_shap_biased.png)
 
-![SHAP de-biased](figures/06_shap_debiased.png)
+![SHAP de-biased](figures/07_shap_debiased.png)
 
-![Importance comparison](figures/06_shap_importance_comparison.png)
+![Importance comparison](figures/07_shap_importance_comparison.png)
 
 Both models rely primarily on `priors_count` and `age`. In the biased model
-the race dummies contribute **15.9% of total attribution mass** — direct
+the race dummies contribute **6.1% of total attribution mass** — direct
 evidence the model uses race itself, on top of proxy channels. In the de-biased
 model this contribution is structurally zero, and because the remaining
 features were decorrelated from race, their attributions no longer secretly
@@ -249,27 +271,30 @@ uses criminal history, just not its racial component.
 
 Changing only the race field and re-scoring every test defendant:
 
-| Counterfactual | n | Biased SVM: mean shift in P(recid) | Biased SVM: suggestions that flip | De-biased SVM |
+| Counterfactual | n | Biased LR: mean shift in P(recid) | Biased LR: suggestions that flip | De-biased LR |
 |---------------|---:|---:|---:|---:|
-| African-American → Caucasian | 952 | −0.045 | **12.6%** | 0 (exact) |
-| Caucasian → African-American | 631 | +0.025 | 8.9% | 0 (exact) |
+| African-American → Caucasian | 952 | −0.018 | **6.7%** | 0 (exact) |
+| Caucasian → African-American | 631 | +0.018 | 4.1% | 0 (exact) |
 
-![Race flip](figures/06_counterfactual_race_flip.png)
+![Race flip](figures/07_counterfactual_race_flip.png)
 
 For the biased model, relabelling an African-American defendant as Caucasian
-flips roughly one suggestion in eight — a different risk label for no reason
-other than race. The de-biased model is race-blind at inference, so the same
-experiment cannot change any suggestion — not as an empirical observation but
-**by construction** (ALTAI #5).
+lowers the estimated recidivism probability for most individuals and flips one
+suggestion in fifteen — a different risk label for no reason other than race.
+The de-biased model is race-blind at inference, so the same experiment cannot
+change any suggestion — not as an empirical observation but **by construction**
+(ALTAI #5).
 
 ### DiCE counterfactuals
 
-For a defendant the de-biased model rates high-risk (age 28, 3 priors, felony
-charge), DiCE finds minimal feature changes — dropping the felony charge
-degree or the juvenile record — that would flip the suggestion to low-risk.
-Counterfactuals like these are what a human decision-maker should see next to
-every score: they expose why the suggestion is what it is and how close the
-person is to the boundary.
+For a defendant the de-biased model rates high-risk (age 30, 11 priors), DiCE —
+constrained to vary only the actionable criminal-history features and hold age
+and sex fixed — finds that the suggestion flips to low-risk only once
+`priors_count` is sharply reduced. That dominant-lever explanation is what a
+human decision-maker should see next to every score: it exposes why the
+suggestion is what it is and how far the person sits from the boundary, while
+also exposing an honest limit — not every high-risk profile has a small or
+realistic path to low-risk.
 
 ## 6. Interactive demo (Streamlit)
 
@@ -279,14 +304,21 @@ Live app: **[compas-analysis.streamlit.app](https://compas-analysis.streamlit.ap
 uv run streamlit run app/demo.py
 ```
 
-![Demo screenshot](figures/07_demo_screenshot.jpg)
+![Demo screenshot](figures/08_demo_screenshot.jpg)
 
 The app operationalizes the suggestion framing (ALTAI #1). For a defendant
 profile entered by the user it shows:
 
-- **Side-by-side suggestions** from the biased and de-biased SVMs, with their
+- **Side-by-side suggestions** from the biased and de-biased models, with their
   predicted probabilities — deliberately showing that two defensible models
   can disagree is itself an anti-over-reliance measure;
+- **a per-defendant "why" breakdown**: because both models are logistic
+  regressions, each suggestion decomposes exactly into one signed log-odds
+  contribution per feature (`intercept + Σ coefⱼ·zⱼ`), shown as a diverging
+  bar chart per model — so the operator sees not just *what* the model
+  suggests but *which features drove this specific case*, and confirms visually
+  that the race fields carry weight in the original-data model and exactly zero
+  in the de-biased one;
 - **a live race-counterfactual table**: the same profile re-scored under every
   race value, making visible that the biased model's suggestion moves with
   race while the de-biased model's provably does not;
@@ -305,7 +337,7 @@ covering automation bias, the *Loomis v. Wisconsin* contestability problem,
 the Chouldechova/Kleinberg impossibility results, the label problem, concrete
 human-in-the-loop design recommendations, and the auditing trade-off ("race
 excluded from the model's inputs but retained in the dataset for auditing") —
-is in [reports/07_reflection.md](reports/07_reflection.md). Its conclusion:
+is in [reports/08_reflection.md](reports/08_reflection.md). Its conclusion:
 the models are modestly accurate, their errors are racially patterned in ways
 no algorithm can fully dissolve, and the target they predict is a record of
 institutional behavior rather than individual conduct. A calibrated,
@@ -316,7 +348,7 @@ decision; it cannot be the decider.
 
 1. **Race kept in the baseline model, deliberately.** The reference model's
    purpose is to *expose* how much predictive weight the data assigns to race
-   (15.9% of SHAP attribution; 12.6% of suggestions flip under a race change),
+   (6.1% of SHAP attribution; 6.7% of suggestions flip under a race change),
    giving the de-biasing step a measurable target. Silently dropping race would
    not have produced fairness either — the proxy test (AUC 0.682) shows why.
 2. **AutoML descoped in favor of transparent detection.** The planned AutoML
@@ -325,8 +357,8 @@ decision; it cannot be the decider.
    reproducible, and directly interpretable — appropriate for a project whose
    thesis is that opacity is not necessary.
 3. **Race-blind inference over race-aware.** Race-aware transformation yields
-   better group metrics (DPD/EOD 0.168 vs 0.233/0.249) but makes an
-   individual's stated race move their score. We chose exact individual
+   markedly better group metrics (DPD/EOD 0.028/0.075 vs 0.238/0.250) but makes
+   an individual's stated race move their score. We chose exact individual
    counterfactual fairness over better group fairness: a guarantee by
    construction, no protected-attribute collection at decision time, no
    explicit differential treatment.
@@ -335,20 +367,24 @@ decision; it cannot be the decider.
    embeds enforcement disparities. Rather than pretending a feature transform
    fixes this, the residual fairness gap is reported honestly and used as the
    core argument for human oversight.
-5. **SVM as the main model, decision tree for interpretability.** Per the
-   project proposal, the SVM is the main classifier (and a realistic stand-in
-   for an opaque deployed model); the depth-limited decision tree provides an
-   inherently interpretable reference showing that transparency costs nothing
-   in accuracy here.
+5. **Logistic regression as the main model, chosen empirically.** A benchmark
+   across ten classifier families (report 03) found every model tied within
+   cross-validation noise (~0.02 ROC-AUC), so there is no accuracy argument for
+   an opaque estimator. Logistic regression is tied-best on accuracy, exposes a
+   signed weight per feature, produces calibrated probabilities, and is a linear
+   match to the linear CorrelationRemover de-biasing step. The depth-limited
+   decision tree is retained as an even more transparent sanity reference; the
+   RBF-SVM used in an earlier draft is kept in the benchmark table only as a
+   comparison point.
 
 ## Reproducibility
 
 - Dependencies are pinned and managed with [uv](https://docs.astral.sh/uv/):
   `uv sync`.
-- All stochastic steps use **fixed seed 42** (train/test split, SVM, SHAP
-  sampling, DiCE).
-- The 70/30 train/test split (stratified jointly on outcome and race) is
-  **persisted to disk** after script 03; every later script loads it, so all
+- All stochastic steps use **fixed seed 42** (train/test split, model fitting,
+  cross-validation, SHAP sampling, DiCE).
+- The 70/30 train/test split (stratified jointly on outcome and race) is created
+  and **persisted to disk** by script 03; every later script loads it, so all
   models are audited on the identical 1,852-defendant test set.
 - Exact script order:
 
@@ -356,10 +392,11 @@ decision; it cannot be the decider.
 uv sync
 uv run python scripts/01_download_data.py
 uv run python scripts/02_eda.py
-uv run python scripts/03_baseline_model.py
-uv run python scripts/04_debias.py
-uv run python scripts/05_debiased_model.py
-uv run python scripts/06_xai_comparison.py
+uv run python scripts/03_model_selection.py
+uv run python scripts/04_baseline_model.py
+uv run python scripts/05_debias.py
+uv run python scripts/06_debiased_model.py
+uv run python scripts/07_xai_comparison.py
 uv run streamlit run app/demo.py
 ```
 
@@ -371,8 +408,8 @@ Each script regenerates its figures (`figures/`), report
 - **Label bias is untouched.** The target is re-arrest; part of the 52% vs 39%
   base-rate gap is produced by unequal enforcement. No method used here (or any
   feature-level method) can correct who got arrested in the first place.
-- **Residual group unfairness.** The de-biased model still shows a 16.0% FPR
-  gap and 24.9% FNR gap; the impossibility theorem means calibration and equal
+- **Residual group unfairness.** The de-biased model still shows a 15.8% FPR
+  gap and 25.0% FNR gap; the impossibility theorem means calibration and equal
   error rates cannot both be achieved with unequal base rates.
 - **Linear de-biasing only.** CorrelationRemover removes linear dependence.
   The post-transformation proxy AUC (~0.51) suggests little non-linear signal
