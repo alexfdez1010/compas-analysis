@@ -69,7 +69,9 @@ which it does.
 ### 2.2 The accuracy ceiling and the human-comparison literature — *closed, but with a twist the project under-uses*
 - **Dressel & Farid (2018)** [dressel2018accuracy]: COMPAS ≈ untrained Mechanical
   Turk workers ≈ a 2-feature logistic regression, all near 65%. (~690 cites.)
-  The project's ~65% SVM/tree is a deliberate echo.
+  The project's ~65% logistic regression / tree is a deliberate echo — and the
+  model-selection step (script 03) shows *every* family, up to gradient-boosted
+  ensembles, lands in the same narrow band.
 - **Twist:** **Lin, Jung & Goel (2020)** [lin2020limits] and **Tan, Adebayo &
   Inkpen (2018)** [tan2018investigating] show human predictions of recidivism are
   *also* limited and *also* biased — humans are not a clean fallback. This
@@ -140,7 +142,7 @@ error rates) is a concrete design response — currently asserted, not tested
 
 **Verdict:** the *argument* is canonical. What most papers do **not** do, and
 the project does, is pair it with a quantified in-pipeline demonstration (proxy
-AUC 0.682, race SHAP share 15.9%, 12.6% counterfactual flips) *and* let it drive
+AUC 0.682, race SHAP share 6.1%, 6.7% counterfactual flips) *and* let it drive
 the deployment decision.
 
 ---
@@ -155,7 +157,7 @@ the deployment decision.
 | "Fairness through unawareness fails" | Standard result | Settled | Quantified *on this data* as a headline audit metric |
 | SHAP attribution of race share | Ingram 2022; SHAP lit | Common tool | **Paired biased-vs-de-biased attribution audit**: shows de-biased ≠ biased−race |
 | DiCE counterfactual recourse | Mothilal 2020 | Common tool | Positioned as decision-support content, not just explanation |
-| Race-flip counterfactual (12.6% flips) | Counterfactual-fairness lit | Known idea | Turned into a **deployment guarantee**: race-blind ⇒ *exactly 0 by construction* |
+| Race-flip counterfactual (6.7% flips) | Counterfactual-fairness lit | Known idea | Turned into a **deployment guarantee**: race-blind ⇒ *exactly 0 by construction* |
 | Race-blind vs race-aware deployment choice | Binns 2019 [binns2019apparent]; Mishler 2021 | Discussed in theory | An **explicit, documented engineering decision** with the group-vs-individual trade-off tabled honestly |
 | HITL demo w/ forced symmetric rationale | De-Arteaga 2020; Alon-Barkat 2022 | Problem well-known | A **built, runnable anti-automation-bias interface** (rare) |
 | ALTAI-structured reflection | EU HLEG ALTAI | Framework exists | Applied end-to-end to a concrete pipeline |
@@ -209,7 +211,7 @@ contribution — the project already has the instrument built.
 ### 4.4 Robustness of the SHAP-based de-biasing evidence
 Because the project uses SHAP as *evidence* that the race channel closed, the
 Slack et al. (2020) [slack2020fooling] result (SHAP is manipulable / not ground
-truth) is a live threat. Add a robustness check: corroborate the 15.9%→0 race
+truth) is a live threat. Add a robustness check: corroborate the 6.1%→0 race
 attribution finding with a second, independent method (permutation importance
 already partly there; add a causal/ablation check, or the InfoGram admissibility
 lens). Small effort, closes an obvious reviewer objection.
