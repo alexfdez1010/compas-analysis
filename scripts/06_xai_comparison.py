@@ -56,6 +56,7 @@ def save_beeswarm(sv, title: str, path: str) -> None:
 
 
 def main() -> None:
+    np.random.seed(42)  # shap's permutation sampling uses the global RNG
     common.apply_plot_style()
     train, test = common.train_test_frames()
     svm_b = joblib.load(MODELS_DIR / "svm_biased.joblib")
