@@ -92,9 +92,36 @@ def load_filtered() -> pd.DataFrame:
     return df.reset_index(drop=True)
 
 
-def model_frame(df: pd.DataFrame) -> pd.DataFrame:
-    """Columns used for modeling plus sensitive attributes and target."""
-    out = df[FEATURES_NUMERIC + [FEATURE_CHARGE] + SENSITIVE + [TARGET]].copy()
-    out["charge_felony"] = (df[FEATURE_CHARGE] == "F").astype(int)
-    out["sex_male"] = (df.sex == "Male").astype(int)
-    return out.drop(columns=[FEATURE_CHARGE])
+RACE_DUMMIES = [
+    "race_african_american",
+    "race_caucasian",
+    "race_hispanic",
+    "race_other",
+]
+
+
+def build_features(df: pd.DataFrame, include_race: bool = True) -> pd.DataFrame:
+    """Feature matrix for modeling.
+
+    `include_race` is an explicit, documented choice: the baseline ("biased")
+    model keeps race so that its influence can be exposed and measured; the
+    de-biased pipeline handles it differently.
+    """
+    X = df[FEATURES_NUMERIC].copy()
+    X["charge_felony"] = (df[FEATURE_CHARGE] == "F").astype(int)
+    X["sex_male"] = (df.sex == "Male").astype(int)
+    if include_race:
+        X["race_african_american"] = (df.race == "African-American").astype(int)
+        X["race_caucasian"] = (df.race == "Caucasian").astype(int)
+        X["race_hispanic"] = (df.race == "Hispanic").astype(int)
+        X["race_other"] = (~df.race.isin(
+            ["African-American", "Caucasian", "Hispanic"]
+        )).astype(int)
+    return X
+
+
+def train_test_frames() -> tuple[pd.DataFrame, pd.DataFrame]:
+    """The persisted train/test split (rows of the filtered cohort)."""
+    train = pd.read_csv(PROCESSED_DIR / "train.csv")
+    test = pd.read_csv(PROCESSED_DIR / "test.csv")
+    return train, test
