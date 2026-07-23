@@ -12,8 +12,8 @@ Mitigation (data-level, so any downstream model benefits):
      their correlation with race is removed, keeping everything else intact.
 
 Outputs: models/correlation_remover.joblib,
-data/processed/{train,test}_debiased.csv, figures/04_*.png,
-reports/04_debias.md
+data/processed/{train,test}_debiased.csv, figures/05_*.png,
+reports/05_debias.md
 """
 
 import joblib
@@ -102,7 +102,7 @@ def main() -> None:
             "after de-biasing every correlation is exactly 0\n(orange bars have zero length)",
             fontsize=8, color=common.INK_SECONDARY, style="italic")
     fig.tight_layout()
-    fig.savefig(FIGURES_DIR / "04_correlation_removal.png", bbox_inches="tight")
+    fig.savefig(FIGURES_DIR / "05_correlation_removal.png", bbox_inches="tight")
     plt.close(fig)
 
     base_rates = train.groupby("race")[TARGET].mean()
@@ -119,7 +119,7 @@ indicator (training split):
 {chr(10).join(f"| `{f}` | {corr_before[f]:+.3f} | {corr_after[f]:+.3f} |" for f in corr_before.abs().sort_values(ascending=False).index)}
 
 `priors_count`, `age` and the juvenile counts all correlate with race - they
-are exactly the features the baseline models lean on (report 03). This is the
+are exactly the features the baseline models lean on (report 04). This is the
 quantitative footprint of the institutional bias discussed in RQ2: unequal
 policing shows up as unequal *measured* criminal history.
 
@@ -147,7 +147,7 @@ After the transformation the same proxy test drops to
 ~0 (figure below). Race - direct or by linear proxy - is no longer encoded in
 the training data.
 
-![Correlation removal](../figures/04_correlation_removal.png)
+![Correlation removal](../figures/05_correlation_removal.png)
 
 ## What this does *not* fix (honest limitations)
 
@@ -163,19 +163,19 @@ the training data.
   remains here, but this must be re-checked whenever features are added.
 - **The impossibility theorem still applies.** With different base rates,
   calibration and equal error rates cannot hold simultaneously
-  (Chouldechova 2017); script 05 measures where the de-biased model lands.
+  (Chouldechova 2017); script 06 measures where the de-biased model lands.
 
 ## Note on the dropped AutoML step
 
 The original proposal included an AutoML tool to pinpoint what needs
 de-biasing. That step was descoped; the automated detection above (correlation
-scan + proxy predictability test + the Fairlearn audit of report 03) fulfils
+scan + proxy predictability test + the Fairlearn audit of report 04) fulfils
 the same role with transparent, reproducible methods.
 """
-    (REPORTS_DIR / "04_debias.md").write_text(report)
+    (REPORTS_DIR / "05_debias.md").write_text(report)
     print(f"proxy AUC before {auc_before:.3f} -> after {auc_after:.3f}")
     print("max |corr| after removal:", corr_after.abs().max().round(4))
-    print("Wrote debiased train/test, remover, figure, reports/04_debias.md")
+    print("Wrote debiased train/test, remover, figure, reports/05_debias.md")
 
 
 if __name__ == "__main__":

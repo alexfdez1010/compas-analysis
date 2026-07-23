@@ -16,7 +16,7 @@ indicator (training split):
 | `juv_fel_count` | +0.045 | -0.000 |
 
 `priors_count`, `age` and the juvenile counts all correlate with race - they
-are exactly the features the baseline models lean on (report 03). This is the
+are exactly the features the baseline models lean on (report 04). This is the
 quantitative footprint of the institutional bias discussed in RQ2: unequal
 policing shows up as unequal *measured* criminal history.
 
@@ -44,7 +44,7 @@ After the transformation the same proxy test drops to
 ~0 (figure below). Race - direct or by linear proxy - is no longer encoded in
 the training data.
 
-![Correlation removal](../figures/04_correlation_removal.png)
+![Correlation removal](../figures/05_correlation_removal.png)
 
 ## What this does *not* fix (honest limitations)
 
@@ -60,4 +60,11 @@ the training data.
   remains here, but this must be re-checked whenever features are added.
 - **The impossibility theorem still applies.** With different base rates,
   calibration and equal error rates cannot hold simultaneously
-  (Chouldechova 2017); script 05 measures where the de-biased model lands.
+  (Chouldechova 2017); script 06 measures where the de-biased model lands.
+
+## Note on the dropped AutoML step
+
+The original proposal included an AutoML tool to pinpoint what needs
+de-biasing. That step was descoped; the automated detection above (correlation
+scan + proxy predictability test + the Fairlearn audit of report 04) fulfils
+the same role with transparent, reproducible methods.
