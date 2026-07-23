@@ -1,0 +1,65 @@
+%==========================================================%
+%  MAIN.TEX — Document entry point
+%==========================================================%
+%
+%  This is the ONLY file you should compile (set it as the
+%  main document in Overleaf: menu > Settings > Main document).
+%
+%  You should not need to edit this file at all for a normal
+%  submission. It simply assembles the other files in the
+%  correct order:
+%
+%    sections/preamble.tex   -> journal formatting (DO NOT EDIT)
+%    user/usercode.tex       -> your own extra packages/macros
+%    user/userdata.tex       -> title, authors, abstract, keywords
+%    sections/cover.tex      -> title page layout (DO NOT EDIT)
+%    user/content.tex        -> the body of your manuscript
+%    user/biblio.bib         -> your reference database (BibTeX)
+%
+%  Everything you are expected to fill in lives under the
+%  'user/' folder. Files under 'sections/' and 'references/'
+%  define the journal's required format and should be left
+%  untouched so every submission is typeset consistently.
+%
+%==========================================================%
+
+% Include the preamble settings. Do not modify this file.
+\input{sections/preamble}
+
+% 'usercode.tex' is for any additional LaTeX packages or commands you need.
+% You can add your custom LaTeX code in this file.
+\input{user/usercode}
+
+% 'userdata.tex' contains the metadata for your paper (title, authors, etc.).
+\input{user/userdata}
+
+% Begin the document.
+\begin{document}
+\doublespacing
+% Include the cover information. This file should not be modified.
+\input{sections/cover}
+
+% 'content.tex' is where you will write the body of your paper.
+\input{user/content}
+
+%----------------------------------------------------------%
+% BIBLIOGRAPHY
+%----------------------------------------------------------%
+% This template uses BibTeX with a customized IEEEtran style
+% (IEEEtranDOI.bst, stored in references/) that additionally
+% prints the DOI of each reference. Do not rename or move
+% 'IEEEtranDOI.bst' — if you do, update the path below to match.
+%
+% Add your own references to 'user/biblio.bib' in BibTeX format
+% and cite them in content.tex with \cite{yourkey}.
+%
+% 'IEEEabrv' below is not a file in this project: it is a
+% standard bibliography-string file that ships with every full
+% TeX Live installation (including Overleaf's), providing
+% abbreviated IEEE journal names. You do not need to add it
+% yourself and should not remove it from the line below.
+\bibliographystyle{references/IEEEtranDOI}
+\bibliography{IEEEabrv,user/biblio}
+
+% End of the document.
+\end{document}

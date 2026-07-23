@@ -1,0 +1,38 @@
+%==========================================================%
+%  COVER.TEX — Title page layout
+%==========================================================%
+%
+%  DO NOT MODIFY THIS FILE.
+%
+%  This builds the title, date, and abstract block from the
+%  values you set in 'user/userdata.tex'. To change your title,
+%  authors, affiliations, keywords, or abstract, edit
+%  'user/userdata.tex' — not this file.
+%
+%==========================================================%
+
+\thispagestyle{empty} % Removes header on page two. Only needed if there is a coverpage
+
+  \title{\vspace{-15mm}\fontsize{21pt}{10pt}\selectfont\textbf{\thetitle \thanks{Draft manuscript. Please do not cite without the authors' permission.}}}
+
+	\date{Submitted: \usvardate\today}
+
+\makeatletter
+\renewcommand{\@maketitle}{
+\newpage
+ \null
+ \vskip 2em%
+ \begin{center}%
+  {\LARGE \@title \par}%
+ \end{center}%
+ \par} \makeatother
+
+\maketitle
+\linenumbers
+\setlength\linenumbersep{15pt}
+\renewcommand\linenumberfont{\normalfont\footnotesize\sffamily\color{gray}}
+\modulolinenumbers[1]
+
+\begin{abstract}
+    \noindent\theabstract
+\end{abstract}
