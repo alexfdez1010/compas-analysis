@@ -313,12 +313,15 @@ profile entered by the user it shows:
   predicted probabilities — deliberately showing that two defensible models
   can disagree is itself an anti-over-reliance measure;
 - **a per-defendant "why" breakdown**: because both models are logistic
-  regressions, each suggestion decomposes exactly into one signed log-odds
-  contribution per feature (`intercept + Σ coefⱼ·zⱼ`), shown as a diverging
-  bar chart per model — so the operator sees not just *what* the model
-  suggests but *which features drove this specific case*, and confirms visually
-  that the race fields carry weight in the original-data model and exactly zero
-  in the de-biased one;
+  regressions, each suggestion decomposes exactly in log-odds
+  (`intercept + Σ coefⱼ·zⱼ`), presented as a **probability-space waterfall
+  chart per model** — starting from the average-profile baseline and applying
+  each feature one at a time (largest effect first), with red bars pushing the
+  suggestion toward higher risk and blue toward lower, in percentage points,
+  landing exactly on the suggested probability — so the operator sees not just
+  *what* the model suggests but *which features drove this specific case*, and
+  confirms visually that the race fields carry weight in the original-data
+  model and exactly zero in the de-biased one;
 - **a live race-counterfactual table**: the same profile re-scored under every
   race value, making visible that the biased model's suggestion moves with
   race while the de-biased model's provably does not;

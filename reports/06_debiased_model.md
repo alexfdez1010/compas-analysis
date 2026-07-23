@@ -37,6 +37,18 @@ De-biasing costs +0.2% accuracy - essentially within noise. The
 the finding that most of the usable signal (priors, age) is retained after the
 transformation.
 
+The overall error profile barely moves from the biased reference - de-biasing
+rebalances *who* the errors fall on across racial groups rather than changing
+the aggregate count, which is the intended effect. The confusion matrix by race
+under race-blind inference (cells shaded by row share, so the diagonal reads as
+per-class accuracy) makes that rebalancing visible: compared with the biased
+model's per-race matrix (report 04), the false-positive cell for
+African-American defendants lightens (32% -> 26%) while their false-negative
+cell darkens (34% -> 40%). Their error profile shifts toward the Caucasian
+panel - which barely moves - narrowing, though not closing, the gap:
+
+![Confusion matrix by race](../figures/06_confusion_by_race.png)
+
 ## Fairness comparison (African-American vs Caucasian, test set)
 
 ![Comparison](../figures/06_fairness_comparison.png)

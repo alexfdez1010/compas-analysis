@@ -3,7 +3,10 @@
 from pathlib import Path
 
 import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
+from matplotlib.colors import LinearSegmentedColormap
 
 ROOT = Path(__file__).resolve().parent.parent
 RAW_CSV = ROOT / "data" / "raw" / "compas-scores-two-years.csv"
@@ -65,6 +68,77 @@ def apply_plot_style() -> None:
             "figure.dpi": 150,
         }
     )
+
+
+CONFUSION_LABELS = ["No recid", "Recid"]
+_CONFUSION_CMAP = LinearSegmentedColormap.from_list(
+    "seq_blue", [SURFACE, SEQUENTIAL[-1]])
+
+
+def confusion_counts(y_true, y_pred) -> "np.ndarray":
+    """Raw 2x2 count matrix ``[[TN, FP], [FN, TP]]`` (rows = true label)."""
+    yt, yp = np.asarray(y_true), np.asarray(y_pred)
+    cm = np.zeros((2, 2), dtype=int)
+    for t in (0, 1):
+        for p in (0, 1):
+            cm[t, p] = int(np.sum((yt == t) & (yp == p)))
+    return cm
+
+
+def _draw_confusion(ax, cm, title=None, show_y=True) -> None:
+    """Render one count matrix onto ``ax`` as a row-share-shaded heatmap.
+
+    Cells are shaded by their share of the row (so the diagonal reads as
+    per-class accuracy regardless of class imbalance) and annotated with the raw
+    count and that row share.
+    """
+    row_share = cm / cm.sum(axis=1, keepdims=True).clip(min=1)
+    ax.imshow(row_share, cmap=_CONFUSION_CMAP, vmin=0, vmax=1, aspect="equal")
+    for t in (0, 1):
+        for p in (0, 1):
+            ax.text(p, t - 0.10, f"{cm[t, p]:,}", ha="center", va="center",
+                    fontsize=13, fontweight="bold",
+                    color=INK if row_share[t, p] < 0.55 else SURFACE)
+            ax.text(p, t + 0.18, f"{row_share[t, p]:.0%}", ha="center", va="center",
+                    fontsize=9,
+                    color=INK_SECONDARY if row_share[t, p] < 0.55 else SURFACE)
+    ax.set_xticks([0, 1], CONFUSION_LABELS)
+    ax.set_xlabel("Predicted")
+    ax.xaxis.set_label_position("top")
+    ax.xaxis.tick_top()
+    if show_y:
+        ax.set_yticks([0, 1], CONFUSION_LABELS)
+        ax.set_ylabel("Actual")
+    else:
+        ax.set_yticks([0, 1], ["", ""])
+    ax.tick_params(length=0)
+    ax.grid(False)
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+    if title is not None:
+        ax.set_title(title, pad=10)
+
+
+def plot_confusion_by_group(y_true, y_pred, groups, order, suptitle,
+                            path) -> dict:
+    """Save a row of confusion matrices, one per group in ``order``.
+
+    All panels share the row-share colour scale, so the darker false-positive
+    cell for one group vs. another is directly comparable - this is where the
+    racial error-rate asymmetry becomes visible. Returns ``{group: count matrix}``.
+    """
+    yt, yp = np.asarray(y_true), np.asarray(y_pred)
+    grp = np.asarray(groups)
+    mats = {g: confusion_counts(yt[grp == g], yp[grp == g]) for g in order}
+
+    fig, axes = plt.subplots(1, len(order), figsize=(3.5 * len(order), 3.7))
+    for i, (ax, g) in enumerate(zip(axes, order)):
+        _draw_confusion(ax, mats[g], title=g, show_y=(i == 0))
+    fig.suptitle(suptitle, y=1.02)
+    fig.tight_layout()
+    fig.savefig(path, bbox_inches="tight")
+    plt.close(fig)
+    return mats
 
 
 def load_raw() -> pd.DataFrame:

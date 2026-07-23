@@ -111,6 +111,11 @@ def main() -> None:
     )
     by_d = mf_d.by_group.loc[["African-American", "Caucasian", "Hispanic"]]
 
+    common.plot_confusion_by_group(
+        y_test, pred_d, race, ["African-American", "Caucasian", "Hispanic"],
+        "De-biased LR (race-blind) - confusion matrix by race",
+        FIGURES_DIR / "06_confusion_by_race.png")
+
     # --- comparison figure ---------------------------------------------------
     groups = ["African-American", "Caucasian"]
     fig, axes = plt.subplots(1, 2, figsize=(9.6, 3.4), sharey=True)
@@ -181,6 +186,18 @@ De-biasing costs {acc_b - acc_d:+.1%} accuracy - essentially within noise. The
 "fairness tax" on predictive performance is negligible here, consistent with
 the finding that most of the usable signal (priors, age) is retained after the
 transformation.
+
+The overall error profile barely moves from the biased reference - de-biasing
+rebalances *who* the errors fall on across racial groups rather than changing
+the aggregate count, which is the intended effect. The confusion matrix by race
+under race-blind inference (cells shaded by row share, so the diagonal reads as
+per-class accuracy) makes that rebalancing visible: compared with the biased
+model's per-race matrix (report 04), the false-positive cell for
+African-American defendants lightens (32% -> 26%) while their false-negative
+cell darkens (34% -> 40%). Their error profile shifts toward the Caucasian
+panel - which barely moves - narrowing, though not closing, the gap:
+
+![Confusion matrix by race](../figures/06_confusion_by_race.png)
 
 ## Fairness comparison (African-American vs Caucasian, test set)
 

@@ -134,6 +134,11 @@ def main() -> None:
     coefs = pd.Series(lr.named_steps["logisticregression"].coef_[0],
                       index=X_train.columns).sort_values(key=np.abs, ascending=False)
 
+    common.plot_confusion_by_group(
+        y_test, lr_pred, test.race, AUDIT_GROUPS,
+        "Logistic Regression on original data - confusion matrix by race",
+        FIGURES_DIR / "04_confusion_lr_by_race.png")
+
     joblib.dump(tree, MODELS_DIR / "tree_biased.joblib")
     joblib.dump(lr, MODELS_DIR / "lr_biased.joblib")
 
@@ -211,6 +216,14 @@ impact per one-SD change in each feature) are:
 {coef_table}
 
 ![Fairness metrics](../figures/04_fairness_lr.png)
+
+The confusion matrix split by race is where the disparity becomes concrete
+(cells shaded by row share, so the diagonal reads as per-class accuracy). All
+panels share one colour scale, so the darker top-right (false-positive) cell for
+African-American defendants and the darker bottom-left (false-negative) cell for
+Caucasian defendants are directly comparable:
+
+![Confusion matrix by race](../figures/04_confusion_lr_by_race.png)
 
 | Metric | African-American | Caucasian | Hispanic |
 |--------|----------------:|----------:|---------:|

@@ -108,6 +108,14 @@ impact per one-SD change in each feature) are:
 
 ![Fairness metrics](../figures/04_fairness_lr.png)
 
+The confusion matrix split by race is where the disparity becomes concrete
+(cells shaded by row share, so the diagonal reads as per-class accuracy). All
+panels share one colour scale, so the darker top-right (false-positive) cell for
+African-American defendants and the darker bottom-left (false-negative) cell for
+Caucasian defendants are directly comparable:
+
+![Confusion matrix by race](../figures/04_confusion_lr_by_race.png)
+
 | Metric | African-American | Caucasian | Hispanic |
 |--------|----------------:|----------:|---------:|
 | Accuracy | 66.8% | 68.0% | 67.3% |
