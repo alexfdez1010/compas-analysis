@@ -4,14 +4,15 @@ Trains
   1. a shallow decision tree - chosen for transparency: the whole decision
      logic can be printed and inspected, satisfying the interpretability goal
      of the initial assessment;
-  2. an RBF-kernel SVM - the reference "biased model" used in the rest of the
-     project.
+  2. a Logistic Regression - the reference "biased model" used in the rest of
+     the project, selected empirically in script 03 (tied-best accuracy, most
+     interpretable, well-calibrated).
 
-Both are audited with Fairlearn (accuracy, selection rate, FPR, FNR per racial
-group; demographic-parity and equalized-odds differences). Outputs:
-  models/tree_biased.joblib, models/svm_biased.joblib
-  data/processed/train.csv, data/processed/test.csv (persisted split)
-  figures/03_*.png, reports/03_baseline.md
+The split is created and persisted by script 03; this script reuses it. Both
+models are audited with Fairlearn (accuracy, selection rate, FPR, FNR per
+racial group; demographic-parity and equalized-odds differences). Outputs:
+  models/tree_biased.joblib, models/lr_biased.joblib
+  figures/04_*.png, reports/04_baseline.md
 """
 
 import joblib
@@ -26,11 +27,10 @@ from fairlearn.metrics import (
     false_positive_rate,
     selection_rate,
 )
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, roc_auc_score
-from sklearn.model_selection import train_test_split
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
-from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier, export_text, plot_tree
 
 import common
@@ -38,7 +38,6 @@ from common import (
     FIGURES_DIR,
     INK_SECONDARY,
     MODELS_DIR,
-    PROCESSED_DIR,
     REPORTS_DIR,
     SERIES,
     TARGET,
@@ -86,15 +85,10 @@ def fig_fairness(mf: MetricFrame, title: str, path: str) -> None:
 
 def main() -> None:
     common.apply_plot_style()
-    for d in (MODELS_DIR, PROCESSED_DIR, FIGURES_DIR, REPORTS_DIR):
+    for d in (MODELS_DIR, FIGURES_DIR, REPORTS_DIR):
         d.mkdir(exist_ok=True)
 
-    df = common.load_filtered()
-    train, test = train_test_split(
-        df, test_size=0.3, random_state=42, stratify=df[[TARGET, "race"]].astype(str).agg("|".join, axis=1)
-    )
-    train.to_csv(PROCESSED_DIR / "train.csv", index=False)
-    test.to_csv(PROCESSED_DIR / "test.csv", index=False)
+    train, test = common.train_test_frames()  # persisted by script 03
 
     X_train = common.build_features(train)
     X_test = common.build_features(test)
@@ -113,7 +107,7 @@ def main() -> None:
               class_names=["no recid", "recid"], fontsize=8, ax=ax,
               impurity=False, proportion=True, rounded=True)
     ax.set_title("Decision tree on the original data (depth 4)", fontsize=14)
-    fig.savefig(FIGURES_DIR / "03_decision_tree.png", bbox_inches="tight")
+    fig.savefig(FIGURES_DIR / "04_decision_tree.png", bbox_inches="tight")
     plt.close(fig)
 
     importances = pd.Series(tree.feature_importances_, index=X_train.columns)
@@ -124,41 +118,50 @@ def main() -> None:
     ax.grid(axis="x")
     ax.grid(axis="y", visible=False)
     fig.tight_layout()
-    fig.savefig(FIGURES_DIR / "03_tree_importance.png", bbox_inches="tight")
+    fig.savefig(FIGURES_DIR / "04_tree_importance.png", bbox_inches="tight")
     plt.close(fig)
 
-    # --- reference SVM (the "biased model") --------------------------------
-    svm = make_pipeline(StandardScaler(), SVC(kernel="rbf", C=1.0, probability=True,
-                                              random_state=42))
-    svm.fit(X_train, y_train)
-    svm_pred = svm.predict(X_test)
-    svm_acc = accuracy_score(y_test, svm_pred)
-    svm_auc = roc_auc_score(y_test, svm.predict_proba(X_test)[:, 1])
+    # --- reference Logistic Regression ("biased model") --------------------
+    lr = make_pipeline(StandardScaler(),
+                       LogisticRegression(max_iter=1000, random_state=42))
+    lr.fit(X_train, y_train)
+    lr_pred = lr.predict(X_test)
+    lr_acc = accuracy_score(y_test, lr_pred)
+    lr_auc = roc_auc_score(y_test, lr.predict_proba(X_test)[:, 1])
+
+    # standardized coefficients (comparable magnitudes; the model is linear and
+    # therefore directly readable - the point of choosing it over the SVM)
+    coefs = pd.Series(lr.named_steps["logisticregression"].coef_[0],
+                      index=X_train.columns).sort_values(key=np.abs, ascending=False)
 
     joblib.dump(tree, MODELS_DIR / "tree_biased.joblib")
-    joblib.dump(svm, MODELS_DIR / "svm_biased.joblib")
+    joblib.dump(lr, MODELS_DIR / "lr_biased.joblib")
 
     # --- fairness audit -----------------------------------------------------
-    mf_svm = audit(y_test, svm_pred, test.race)
+    mf_lr = audit(y_test, lr_pred, test.race)
     mf_tree = audit(y_test, tree_pred, test.race)
-    fig_fairness(mf_svm, "SVM on original data - fairness metrics by race",
-                 "03_fairness_svm.png")
+    fig_fairness(mf_lr, "Logistic Regression on original data - fairness by race",
+                 "04_fairness_lr.png")
 
     mask = test.race.isin(["African-American", "Caucasian"]).values
     dpd = demographic_parity_difference(
-        y_test[mask], svm_pred[mask], sensitive_features=test.race[mask])
+        y_test[mask], lr_pred[mask], sensitive_features=test.race[mask])
     eod = equalized_odds_difference(
-        y_test[mask], svm_pred[mask], sensitive_features=test.race[mask])
+        y_test[mask], lr_pred[mask], sensitive_features=test.race[mask])
 
-    by = mf_svm.by_group.loc[AUDIT_GROUPS]
+    by = mf_lr.by_group.loc[AUDIT_GROUPS]
     by_tree = mf_tree.by_group.loc[AUDIT_GROUPS]
+
+    coef_table = "\n".join(
+        f"| `{name}` | {val:+.3f} |" for name, val in coefs.items())
 
     report = f"""# Baseline models on the original data
 
 Split: 70/30 train/test, stratified jointly on outcome and race
-({len(train):,} train / {len(test):,} test). Features: age, priors count,
-juvenile counts (felony/misdemeanor/other), charge degree, sex, **and race**
-(one-hot).
+({len(train):,} train / {len(test):,} test), created and persisted by script 03
+so every later script scores the identical test set. Features: age, priors
+count, juvenile counts (felony/misdemeanor/other), charge degree, sex, **and
+race** (one-hot).
 
 **On including race.** Deliberately keeping race in this baseline is itself an
 ethical decision that requires justification: the point of the reference model
@@ -166,15 +169,21 @@ is to *expose* how much predictive weight the data assigns to race, so that the
 de-biasing step has a measurable target. A deployed system should not use race
 as an input - but silently dropping it does not produce fairness either
 ("fairness through unawareness"), because priors count, charge degree and age
-act as proxies. This is exactly what the de-biasing step (script 04) addresses.
+act as proxies. This is exactly what the de-biasing step (script 05) addresses.
+
+**On the model.** The reference classifier is a Logistic Regression, selected
+in script 03: on this data every model family is tied within cross-validation
+noise, so the project picks the estimator that is simultaneously tied-for-best
+on accuracy and directly interpretable. The depth-4 decision tree below is an
+additional, even more transparent sanity check.
 
 ## Interpretable decision tree
 
 Accuracy **{tree_acc:.1%}**, ROC-AUC **{tree_auc:.3f}**.
 
-![Decision tree](../figures/03_decision_tree.png)
+![Decision tree](../figures/04_decision_tree.png)
 
-![Feature importance](../figures/03_tree_importance.png)
+![Feature importance](../figures/04_tree_importance.png)
 
 The learned rules are dominated by `priors_count` and `age`:
 
@@ -191,11 +200,17 @@ Two observations relevant to the ethics assessment:
    still shows large error-rate gaps - the bias travels through `priors_count`
    and `age`, which are products of unequal policing intensity (see RQ2).
 
-## Reference SVM ("biased model")
+## Reference Logistic Regression ("biased model")
 
-RBF-kernel SVM. Accuracy **{svm_acc:.1%}**, ROC-AUC **{svm_auc:.3f}**.
+Accuracy **{lr_acc:.1%}**, ROC-AUC **{lr_auc:.3f}**. Because the model is
+linear its logic is fully readable - the standardized coefficients (log-odds
+impact per one-SD change in each feature) are:
 
-![Fairness metrics](../figures/03_fairness_svm.png)
+| Feature | Std. coefficient |
+|---------|-----------------:|
+{coef_table}
+
+![Fairness metrics](../figures/04_fairness_lr.png)
 
 | Metric | African-American | Caucasian | Hispanic |
 |--------|----------------:|----------:|---------:|
@@ -211,7 +226,8 @@ Decision tree for comparison (same test set): FPR
 {by_tree.loc['Caucasian', 'false negative rate']:.1%}
 (African-American vs Caucasian).
 
-Aggregate disparity of the SVM restricted to African-American vs Caucasian:
+Aggregate disparity of the Logistic Regression restricted to African-American
+vs Caucasian:
 
 - **Demographic parity difference: {dpd:.3f}** (gap in the share of people
   flagged as likely recidivists)
@@ -225,15 +241,15 @@ system - the reference point the de-biasing step must improve on.
 
 ## ALTAI Requirement #2 - accuracy in context
 
-An accuracy of ~{svm_acc:.0%} means roughly one in three suggestions is wrong.
+An accuracy of ~{lr_acc:.0%} means roughly one in three suggestions is wrong.
 For a system that could influence detention decisions this error rate is only
 acceptable - if at all - in a decision-support setting with a human weighing
-independent evidence (see reports/07_reflection.md).
+independent evidence (see reports/08_reflection.md).
 """
-    (REPORTS_DIR / "03_baseline.md").write_text(report)
-    print(f"tree acc {tree_acc:.3f} auc {tree_auc:.3f} | svm acc {svm_acc:.3f} auc {svm_auc:.3f}")
-    print(f"SVM AA-vs-C: DPD {dpd:.3f}, EOD {eod:.3f}")
-    print("Wrote reports/03_baseline.md, 3 figures, 2 models, persisted split")
+    (REPORTS_DIR / "04_baseline.md").write_text(report)
+    print(f"tree acc {tree_acc:.3f} auc {tree_auc:.3f} | lr acc {lr_acc:.3f} auc {lr_auc:.3f}")
+    print(f"LR AA-vs-C: DPD {dpd:.3f}, EOD {eod:.3f}")
+    print("Wrote reports/04_baseline.md, 3 figures, 2 models")
 
 
 if __name__ == "__main__":
