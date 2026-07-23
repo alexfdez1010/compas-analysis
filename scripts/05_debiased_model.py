@@ -58,16 +58,31 @@ def main() -> None:
     svm_d = make_pipeline(StandardScaler(), SVC(kernel="rbf", C=1.0,
                                                 probability=True, random_state=42))
     svm_d.fit(train_d[FEATURES], train_d[TARGET])
-    pred_d = svm_d.predict(test_d[FEATURES])
-    acc_d = accuracy_score(test_d[TARGET], pred_d)
-    auc_d = roc_auc_score(test_d[TARGET], svm_d.predict_proba(test_d[FEATURES])[:, 1])
     joblib.dump(svm_d, MODELS_DIR / "svm_debiased.joblib")
+
+    # Canonical deployment is RACE-BLIND inference: the CorrelationRemover is a
+    # training-time intervention only, and at prediction time the model receives
+    # the raw (untransformed) features, which contain no race column. This makes
+    # the de-biased model invariant to race by construction (counterfactual
+    # fairness at the individual level) and means no protected attribute is
+    # needed at decision time. The race-aware alternative (transforming the
+    # incoming features with the person's race) is evaluated below for
+    # comparison; it yields better group metrics but lets a person's stated
+    # race move their individual score.
+    X_test_raw = common.build_features(test, include_race=False)[FEATURES]
+    pred_d = svm_d.predict(X_test_raw)
+    acc_d = accuracy_score(test[TARGET], pred_d)
+    auc_d = roc_auc_score(test[TARGET], svm_d.predict_proba(X_test_raw)[:, 1])
+
+    # race-aware variant (transform test features with the person's race)
+    pred_d_aware = svm_d.predict(test_d[FEATURES])
 
     # biased reference predictions on the same test rows
     svm_b = joblib.load(MODELS_DIR / "svm_biased.joblib")
     X_test_b = common.build_features(test)
     pred_b = svm_b.predict(X_test_b)
     acc_b = accuracy_score(test[TARGET], pred_b)
+    acc_d_aware = accuracy_score(test[TARGET], pred_d_aware)
 
     y_test = test[TARGET]
     race = test.race
@@ -81,6 +96,10 @@ def main() -> None:
                                           sensitive_features=race[mask])
     eod_d = equalized_odds_difference(y_test[mask], pred_d[mask],
                                       sensitive_features=race[mask])
+    dpd_d_aware = demographic_parity_difference(y_test[mask], pred_d_aware[mask],
+                                                sensitive_features=race[mask])
+    eod_d_aware = equalized_odds_difference(y_test[mask], pred_d_aware[mask],
+                                            sensitive_features=race[mask])
 
     mf_d = MetricFrame(
         metrics={"accuracy": accuracy_score, "selection rate": selection_rate,
@@ -127,6 +146,25 @@ def main() -> None:
 Identical architecture to the reference model (StandardScaler + RBF SVM,
 C=1.0), trained on the de-biased features from script 04. Race enters the
 pipeline only as an **audit attribute**.
+
+## Deployment decision: race-blind inference
+
+The CorrelationRemover needs the sensitive attribute to transform a row, which
+poses a choice for prediction time:
+
+| Deployment | Accuracy | Demographic parity diff. | Equalized odds diff. | Individual race-invariance |
+|------------|---------:|-------------------------:|---------------------:|:--:|
+| **Race-blind** (raw features at inference, chosen) | {acc_d:.1%} | {dpd_d:.3f} | {eod_d:.3f} | yes - exact |
+| Race-aware (transform with the person's race) | {acc_d_aware:.1%} | {dpd_d_aware:.3f} | {eod_d_aware:.3f} | no |
+
+The race-aware variant achieves better *group* fairness, but a person's stated
+race then moves their individual score - it breaks counterfactual fairness,
+requires collecting the protected attribute at decision time, and amounts to
+explicit differential treatment. We therefore deploy **race-blind**: the
+de-biasing is a training-time intervention (the model's *coefficients* were
+learned from race-neutralized data), and at prediction time the model never
+sees race, so flipping race provably cannot change any suggestion. All numbers
+below use race-blind inference.
 
 ## Performance
 
